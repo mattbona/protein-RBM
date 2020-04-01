@@ -7,6 +7,7 @@
 ### at various temperature [119-122 GROMACS_REF_T].
 ###
 
+import os
 from paysage import preprocess as pre
 from paysage import layers
 from paysage.models import BoltzmannMachine
@@ -17,13 +18,19 @@ from paysage import schedules, batch
 from paysage import penalties as pen
 import numpy as np
 import csv
-import mnist_util as util
+
+# import the Gprotein_util module
+from importlib import util
+filename = os.path.join(os.path.dirname(__file__), "util/Gprotein_util.py")
+spec = util.spec_from_file_location("Gprotein_util", location=filename)
+Gprotein_util = util.module_from_spec(spec)
+spec.loader.exec_module(Gprotein_util)
 
 be.set_seed(137) # for determinism
 
 ### Load Data
-dataset_path="./data/rbm-dataset/"
-train_file="sim-120T" # Name of the .dat train file in the dataset dir
+dataset_path = os.path.join(os.path.dirname(__file__), "../dataset/")
+train_file = "sim-120_0T" # Name of the .dat train file in the dataset dir
 
 train_patterns_list = []
 with open(dataset_path+train_file+'.dat') as csvfile:
@@ -36,12 +43,12 @@ with open(dataset_path+train_file+'.dat') as csvfile:
 samples = np.asarray(train_patterns_list)
 ###
 
-def run(num_epochs=10, show_plot=False):
+def run(num_epochs=1, show_plot=False):
     num_hidden_units = 1540
     batch_size = 100
-    mc_steps = 10
+    mc_steps = 1
     beta_std = 0.6
-    train_fraction = 0.5
+    train_fraction = 0.8
 
     # set up the reader to get minibatches
     with batch.in_memory_batch(samples, batch_size, train_fraction) as data:
@@ -61,24 +68,25 @@ def run(num_epochs=10, show_plot=False):
         opt = optimizers.ADAM(stepsize=learning_rate)
 
         cd.train(opt, num_epochs, mcsteps=mc_steps, method=fit.pcd)
-#        util.show_metrics(rbm, cd.monitor)
+#        Gprotein_util.show_metrics(rbm, cd.monitor)
 
     return rbm
 
 if __name__ == "__main__":
 
-    rbm = run(show_plot = True)
-
+    rbm = run(show_plot = False)
+    print("DONE!")
+"""
     n_fantasy = 100
     fantasy_steps = 100
     beta_std = 0.6
     run_mean_field = True
 
-    fantasy_particles = util.compute_fantasy_particles(rbm, n_fantasy, fantasy_steps,beta_std=beta_std,run_mean_field=run_mean_field)
+    fantasy_particles = Gprotein_util.compute_fantasy_particles(rbm, n_fantasy, fantasy_steps,beta_std=beta_std,run_mean_field=run_mean_field)
 
     FP = fantasy_particles.sum(2)/1.540
     av_E = FP[:,fantasy_steps-1].sum()/n_fantasy
     av_E2 = (np.square(FP[:,fantasy_steps-1])).sum()/n_fantasy
     var = av_E2 - av_E**2
-
     print("Mean E:\t",av_E,"\t",var)
+"""
