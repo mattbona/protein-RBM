@@ -1,3 +1,4 @@
+#!/home/matteob/anaconda3/envs/paysage-rbm/bin/python
 ### Author: Matteo Bonamassa
 ### E-mail: matteo.bonamassa1@gmail.com
 ### Date: February 2020
@@ -44,15 +45,14 @@ for temperature in os.listdir("../dataset"):
 
     samples = np.asarray(train_patterns_list)
 
-    def run(num_epochs=100, show_plot=False):
+    def run(num_epochs=1, show_plot=False):
         num_hidden_units = 1540
         batch_size = 100
         mc_steps = 10
         beta_std = 0.6
-        train_fraction = 0.8
 
         # set up the reader to get minibatches
-        with batch.in_memory_batch(samples, batch_size, train_fraction) as data:
+        with batch.in_memory_batch(samples, batch_size, train_fraction=0.95) as data:
 
             # set up the model and initialize the parameters
             vis_layer = layers.BernoulliLayer(data.ncols)
@@ -62,7 +62,7 @@ for temperature in os.listdir("../dataset"):
             rbm.connections[0].weights.add_penalty({'matrix': pen.l2_penalty(0.001)})
             rbm.initialize(data, method='hinton')
 
-            print('training with persistent contrastive divergence')
+#            print('training with persistent contrastive divergence')
             cd = fit.SGD(rbm, data)
 
             learning_rate = schedules.PowerLawDecay(initial=0.01, coefficient=0.1)
@@ -78,11 +78,9 @@ for temperature in os.listdir("../dataset"):
         rbm = run(show_plot = False)
 #        print("DONE!")
 
-        n_fantasy = 1000
-        fantasy_steps = 100
-#        beta_std = 0.6
-#        run_mean_field = True
-#        print("computing fp")
+        n_fantasy = 500
+        fantasy_steps = 10
+        print("computing fp")
         fantasy_particles = Gprotein_util.compute_fantasy_particles(rbm, n_fantasy, fantasy_steps)
 
         FP = fantasy_particles.sum(2)/1540
