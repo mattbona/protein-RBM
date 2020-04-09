@@ -50,7 +50,7 @@ def create_batch(batch_size, train_fraction=0.95, transform=be.do_nothing):
 # ----- CHECK MODEL ----- #
 
 def example_plot(grid, show_plot, dim=56, vmin=0, vmax=1, cmap=plotting.cm.gray):
-    
+
     first_dim = grid.shape[0]
     second_dim = grid.shape[1]
     new_grid = np.zeros((first_dim,second_dim,dim*dim))
@@ -63,7 +63,7 @@ def example_plot(grid, show_plot, dim=56, vmin=0, vmax=1, cmap=plotting.cm.gray)
             Z1[triu_i] = W1
             flatten_Z1 = Z1.flatten()
             new_grid[x,y,:] = flatten_Z1
-            
+
     numpy_grid = be.to_numpy_array(new_grid)
     if show_plot:
         plotting.plot_image_grid(numpy_grid, (dim,dim), vmin, vmax, cmap=cmap)
@@ -96,19 +96,17 @@ def compute_fantasy_particles(rbm, n_fantasy=5, fantasy_steps=100, beta_std=0.6,
                               run_mean_field=True):
     schedule = schedules.Linear(initial=1.0, delta = 1 / (fantasy_steps-1))
     fantasy = samplers.SequentialMC.generate_fantasy_state(rbm,
-                                                           n_fantasy*n_fantasy,
+                                                           n_fantasy,
                                                            fantasy_steps,
                                                            schedule=schedule,
                                                            beta_std=beta_std,
                                                            beta_momentum=0.0)
-
     if run_mean_field:
         fantasy = rbm.mean_field_iteration(1, fantasy)
 
     v_model = fantasy[0]
-    print(v_model,"\n", v_model.shape)
     grid = np.array([be.to_numpy_array(v) for v in v_model])
-    return grid.reshape(n_fantasy, n_fantasy, -1)
+    return grid#.reshape(n_fantasy, n_fantasy, -1)
 
 def show_fantasy_particles(rbm, v_data, show_plot, dim=56, n_fantasy=5,
                            fantasy_steps=100, beta_std=0.6, run_mean_field=True):

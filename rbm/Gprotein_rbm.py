@@ -45,8 +45,8 @@ for temperature in os.listdir("../dataset"):
 
     samples = np.asarray(train_patterns_list)
 
-    def run(num_epochs=1, show_plot=False):
-        num_hidden_units = 1540
+    def run(num_epochs=10, show_plot=False):
+        num_hidden_units = 100
         batch_size = 100
         mc_steps = 10
         beta_std = 0.6
@@ -74,18 +74,18 @@ for temperature in os.listdir("../dataset"):
         return rbm
 
     if __name__ == "__main__":
-#        print(temperature)
+        print("Computing file: ", temperature)
         rbm = run(show_plot = False)
-#        print("DONE!")
+        print("Train done!")
 
-        n_fantasy = 500
+        n_fantasy = 10000
         fantasy_steps = 10
-        print("computing fp")
-        fantasy_particles = Gprotein_util.compute_fantasy_particles(rbm, n_fantasy, fantasy_steps)
+        print("Creating fantasy particles...")
+        fantasy_particles = Gprotein_util.compute_fantasy_particles(rbm, n_fantasy, fantasy_steps,run_mean_field=False)
 
-        FP = fantasy_particles.sum(2)/1540
-        av_E = FP[:,fantasy_steps-1].sum()/n_fantasy
-        av_E2 = (np.square(FP[:,fantasy_steps-1])).sum()/n_fantasy
+        cmap_energy = fantasy_particles.sum(1)/np.size(fantasy_particles, 1)
+        av_E = cmap_energy.sum(0)/np.size(cmap_energy, 0)
+        av_E2 = (np.square(cmap_energy)).sum(0)/np.size(cmap_energy, 0)
         var = av_E2 - av_E**2
-#        print("Mean E:\t",av_E,"\t",var)
+        print("Mean E:\t",av_E,"\t",var)
         out_file.write(temperature+" "+ str(av_E) + " " + str(var)+"\n")
