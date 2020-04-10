@@ -1,4 +1,4 @@
-#!/home/matteob/anaconda3/envs/paysage-rbm/bin/python
+#!/home/matteob/.local/envs/miniconda3/envs/rbm-paysage/bin/python
 ### Author: Matteo Bonamassa
 ### E-mail: matteo.bonamassa1@gmail.com
 ### Date: February 2020
