@@ -29,7 +29,8 @@ spec.loader.exec_module(Gprotein_util)
 
 be.set_seed(137) # for determinism
 
-out_file = open("energy-vs-var-fanatasy-cmap.dat", "a+")
+out_file = open("results/energy-vs-var-fanatasy-cmap.dat", "a+")
+out_file1 = open("results/KL&ReverseKL-div.dat", "a+")
 for temperature in os.listdir("../dataset"):
 
     dataset_path = "../dataset/"
@@ -46,9 +47,9 @@ for temperature in os.listdir("../dataset"):
     samples = np.asarray(train_patterns_list)
 
     def run(num_epochs=10, show_plot=False):
-        num_hidden_units = 100
+        num_hidden_units = 10
         batch_size = 100
-        mc_steps = 10
+        mc_steps = 1
         beta_std = 0.6
 
         # set up the reader to get minibatches
@@ -69,6 +70,10 @@ for temperature in os.listdir("../dataset"):
             opt = optimizers.ADAM(stepsize=learning_rate)
 
             cd.train(opt, num_epochs, mcsteps=mc_steps, method=fit.pcd, verbose=False)
+            reverse_KL_div = [ cd.monitor.memory[i]['ReverseKLDivergence'] for i in range(0,len(cd.monitor.memory)) ]
+            KL_div = [ cd.monitor.memory[i]['KLDivergence'] for i in range(0,len(cd.monitor.memory)) ]
+            for i in range(0,len(cd.monitor.memory)):
+            	out_file1.write(str(KL_div[i])+" "+str(reverse_KL_div[i])+"\n")
     #        Gprotein_util.show_metrics(rbm, cd.monitor)
 
         return rbm
@@ -78,7 +83,7 @@ for temperature in os.listdir("../dataset"):
         rbm = run(show_plot = False)
         print("Train done!")
 
-        n_fantasy = 10000
+        n_fantasy = 100000
         fantasy_steps = 10
         print("Creating fantasy particles...")
         fantasy_particles = Gprotein_util.compute_fantasy_particles(rbm, n_fantasy, fantasy_steps,run_mean_field=False)
