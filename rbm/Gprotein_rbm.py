@@ -30,9 +30,9 @@ spec.loader.exec_module(Gprotein_util)
 be.set_seed(137) # for determinism
 
 out_file = open("results/energy-vs-var-fanatasy-cmap.dat", "a+")
-out_file1 = open("results/KL&ReverseKL-div.dat", "a+")
 for temperature in os.listdir("../dataset"):
 
+    out_file1 = open("results/KL-div/KL&ReverseKL-div"+temperature, "a+")
     dataset_path = "../dataset/"
     train_file = temperature # Name of the .dat train file in the dataset dir
 
@@ -47,7 +47,7 @@ for temperature in os.listdir("../dataset"):
     samples = np.asarray(train_patterns_list)
 
     def run(num_epochs=10, show_plot=False):
-        num_hidden_units = 10
+        num_hidden_units = 1
         batch_size = 100
         mc_steps = 1
         beta_std = 0.6
@@ -75,7 +75,8 @@ for temperature in os.listdir("../dataset"):
             for i in range(0,len(cd.monitor.memory)):
             	out_file1.write(str(KL_div[i])+" "+str(reverse_KL_div[i])+"\n")
     #        Gprotein_util.show_metrics(rbm, cd.monitor)
-
+            filename = "results/weights/weights-"+temperature+".jpg"
+            Gprotein_util.show_weights(rbm, show_plot=False, n_weights=1, Filename=filename)
         return rbm
 
     if __name__ == "__main__":
@@ -83,7 +84,7 @@ for temperature in os.listdir("../dataset"):
         rbm = run(show_plot = False)
         print("Train done!")
 
-        n_fantasy = 100000
+        n_fantasy = 10000
         fantasy_steps = 10
         print("Creating fantasy particles...")
         fantasy_particles = Gprotein_util.compute_fantasy_particles(rbm, n_fantasy, fantasy_steps,run_mean_field=False)

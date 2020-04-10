@@ -49,7 +49,7 @@ def create_batch(batch_size, train_fraction=0.95, transform=be.do_nothing):
 
 # ----- CHECK MODEL ----- #
 
-def example_plot(grid, show_plot, dim=56, vmin=0, vmax=1, cmap=plotting.cm.gray):
+def example_plot(grid, show_plot, Filename=None, dim=56, vmin=0, vmax=1, cmap=plotting.cm.gray):
 
     first_dim = grid.shape[0]
     second_dim = grid.shape[1]
@@ -67,6 +67,9 @@ def example_plot(grid, show_plot, dim=56, vmin=0, vmax=1, cmap=plotting.cm.gray)
     numpy_grid = be.to_numpy_array(new_grid)
     if show_plot:
         plotting.plot_image_grid(numpy_grid, (dim,dim), vmin, vmax, cmap=cmap)
+    if Filename:
+        plotting.plot_image_grid(numpy_grid, (dim,dim), vmin, vmax, cmap=cmap, show=False, filename=Filename)
+
 
 def show_metrics(rbm, performance, show_plot=True):
     performance.plot_metrics(show=show_plot)
@@ -135,7 +138,7 @@ def compute_weights(rbm, n_weights=25, l=0, random=True):
                         for i in idx])
     return grid.reshape(grid_size, grid_size, -1)
 
-def show_weights(rbm, show_plot, dim=56, n_weights=25, random=True):
+def show_weights(rbm, show_plot, dim=56, n_weights=25, random=True, Filename=None):
     print("\nPlot a random sample of the weights")
     for l in range(rbm.num_connections):
         grid = compute_weights(rbm, n_weights, l=l, random=random)
@@ -144,7 +147,7 @@ def show_weights(rbm, show_plot, dim=56, n_weights=25, random=True):
         maxval = np.max(np.abs(grid))
         grid /= maxval
 
-        example_plot(grid, show_plot, dim=dim, vmin=-1, vmax=+1,
+        example_plot(grid, show_plot, Filename, dim=dim, vmin=-1, vmax=+1,
                      cmap=plotting.cm.bwr)
 
 def weight_norm_histogram(rbm, show_plot=False, filename=None):
