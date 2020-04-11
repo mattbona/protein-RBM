@@ -29,10 +29,9 @@ spec.loader.exec_module(Gprotein_util)
 
 be.set_seed(137) # for determinism
 
-out_file = open("results/energy-vs-var-fanatasy-cmap.dat", "a+")
 for temperature in os.listdir("../dataset"):
 
-    out_file1 = open("results/KL-div/KL&ReverseKL-div"+temperature, "a+")
+    out_file1 = open("results/KL-div/KL&ReverseKL-div-"+temperature, "a+")
     dataset_path = "../dataset/"
     train_file = temperature # Name of the .dat train file in the dataset dir
 
@@ -46,7 +45,7 @@ for temperature in os.listdir("../dataset"):
 
     samples = np.asarray(train_patterns_list)
 
-    def run(num_epochs=10, show_plot=False):
+    def run(num_epochs=1, show_plot=False):
         num_hidden_units = 1
         batch_size = 100
         mc_steps = 1
@@ -61,7 +60,7 @@ for temperature in os.listdir("../dataset"):
 
             rbm = BoltzmannMachine([vis_layer, hid_layer])
             rbm.connections[0].weights.add_penalty({'matrix': pen.l2_penalty(0.001)})
-            rbm.initialize(data, method='hinton')
+            rbm.initialize(data, method='pca')
 
 #            print('training with persistent contrastive divergence')
             cd = fit.SGD(rbm, data)
@@ -75,7 +74,8 @@ for temperature in os.listdir("../dataset"):
             for i in range(0,len(cd.monitor.memory)):
             	out_file1.write(str(KL_div[i])+" "+str(reverse_KL_div[i])+"\n")
     #        Gprotein_util.show_metrics(rbm, cd.monitor)
-            filename = "results/weights/weights-"+temperature+".jpg"
+            out_file1.close()
+            filename = "results/weights/weights-"+temperature[:-4]+".jpg"
             Gprotein_util.show_weights(rbm, show_plot=False, n_weights=1, Filename=filename)
         return rbm
 
@@ -89,9 +89,24 @@ for temperature in os.listdir("../dataset"):
         print("Creating fantasy particles...")
         fantasy_particles = Gprotein_util.compute_fantasy_particles(rbm, n_fantasy, fantasy_steps,run_mean_field=False)
 
+        # Compute mean energy and variance
         cmap_energy = fantasy_particles.sum(1)/np.size(fantasy_particles, 1)
         av_E = cmap_energy.sum(0)/np.size(cmap_energy, 0)
         av_E2 = (np.square(cmap_energy)).sum(0)/np.size(cmap_energy, 0)
         var = av_E2 - av_E**2
         print("Mean E:\t",av_E,"\t",var)
-        out_file.write(temperature+" "+ str(av_E) + " " + str(var)+"\n")
+        out_file = open("energy-vs-var-fantasy-cmap.dat", "a+")
+        out_file.write(temperature[4:-5]+" "+ str(av_E) + " " + str(var)+"\n")
+
+        # Save mean fantasy cmap
+        mean_cmap = fantasy_particles.sum(0)/np.size(fantasy_particles, 0)
+
+        triu_i = np.triu_indices(56,1)
+        Z1 = np.zeros((56,56))
+        Z1[triu_i] = mean_cmap
+
+        plt.matshow(Z1)
+
+        colorbar = plt.colorbar()
+        colorbar.set_label("% precence of contact on average")
+        plt.savefig("results/mean_fantasy_cmap/mean_cmap-"+ temperature[:-4]+".png")
