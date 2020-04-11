@@ -18,6 +18,7 @@ from paysage import backends as be
 from paysage import schedules, batch
 from paysage import penalties as pen
 import numpy as np
+import matplotlib.pyplot as plt
 import csv
 
 # import the Gprotein_util module
@@ -60,7 +61,7 @@ for temperature in os.listdir("../dataset"):
 
             rbm = BoltzmannMachine([vis_layer, hid_layer])
             rbm.connections[0].weights.add_penalty({'matrix': pen.l2_penalty(0.001)})
-            rbm.initialize(data, method='pca')
+            rbm.initialize(data, method='hinton')
 
 #            print('training with persistent contrastive divergence')
             cd = fit.SGD(rbm, data)
