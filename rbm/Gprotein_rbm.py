@@ -1,4 +1,4 @@
-#!/home/matteob/.local/envs/miniconda3/envs/rbm-paysage/bin/python
+#!/home/matteob/anaconda3/envs/paysage-rbm/bin/python
 ### Author: Matteo Bonamassa
 ### E-mail: matteo.bonamassa1@gmail.com
 ### Date: February 2020
@@ -46,10 +46,10 @@ for temperature in os.listdir("../dataset"):
 
     samples = np.asarray(train_patterns_list)
 
-    def run(num_epochs=1, show_plot=False):
+    def run(num_epochs=50, show_plot=False):
         num_hidden_units = 1
         batch_size = 100
-        mc_steps = 1
+        mc_steps = 10
         beta_std = 0.6
 
         # set up the reader to get minibatches
@@ -61,7 +61,7 @@ for temperature in os.listdir("../dataset"):
 
             rbm = BoltzmannMachine([vis_layer, hid_layer])
             rbm.connections[0].weights.add_penalty({'matrix': pen.l2_penalty(0.001)})
-            rbm.initialize(data, method='hinton')
+            rbm.initialize(data, method='pca')
 
 #            print('training with persistent contrastive divergence')
             cd = fit.SGD(rbm, data)
