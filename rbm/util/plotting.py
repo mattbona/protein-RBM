@@ -38,8 +38,8 @@ def plot_image_grid(image_array, shape, vmin=0, vmax=1, filename=None, show=True
                               interpolation='none', vmin=vmin, vmax=vmax)
             axes[i][j].set(yticks=[])
             axes[i][j].set(xticks=[])
-            colorbar =plt.colorbar(ax)
-            colorbar.set_label("Weight value")
+#            colorbar =plt.colorbar(ax)
+#            colorbar.set_label("Weight value")
 
     plt.tight_layout(pad=0.5, h_pad=0.2, w_pad=0.2)
     if show:

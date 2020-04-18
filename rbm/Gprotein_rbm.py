@@ -47,7 +47,7 @@ for temperature in os.listdir("../dataset"):
     samples = np.asarray(train_patterns_list)
 
     def run(num_epochs=50, show_plot=False):
-        num_hidden_units = 1
+        num_hidden_units = 100
         batch_size = 100
         mc_steps = 10
         beta_std = 0.6
@@ -77,7 +77,7 @@ for temperature in os.listdir("../dataset"):
     #        Gprotein_util.show_metrics(rbm, cd.monitor)
             out_file1.close()
             filename = "results/weights/weights-"+temperature[:-4]+".jpg"
-            Gprotein_util.show_weights(rbm, show_plot=False, n_weights=1, Filename=filename)
+            Gprotein_util.show_weights(rbm, show_plot=False, n_weights=10, Filename=filename)
         return rbm
 
     if __name__ == "__main__":
