@@ -91,7 +91,7 @@ def compute_reconstructions(rbm, v_data, n_recon=10, vertical=False, num_to_avg=
 
 def show_reconstructions(rbm, v_data, show_plot, dim=56, n_recon=10,
                          vertical=False, num_to_avg=1):
-    print("\nPlot a random sample of reconstructions")
+    print("Plot a random sample of reconstructions")
     grid = compute_reconstructions(rbm, v_data, n_recon, vertical, num_to_avg)
     example_plot(grid, show_plot, dim=dim)
 
@@ -139,7 +139,7 @@ def compute_weights(rbm, n_weights=25, l=0, random=True):
     return grid.reshape(grid_size, grid_size, -1)
 
 def show_weights(rbm, show_plot, dim=56, n_weights=25, random=True, Filename=None):
-    print("\nPlot a random sample of the weights")
+    print("Plot a random sample of the weights...")
     for l in range(rbm.num_connections):
         grid = compute_weights(rbm, n_weights, l=l, random=random)
 

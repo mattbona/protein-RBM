@@ -35,7 +35,8 @@ for temperature in os.listdir("../dataset"):
     out_file1 = open("results/KL-div/KL&ReverseKL-div-"+temperature, "a+")
     dataset_path = "../dataset/"
     train_file = temperature # Name of the .dat train file in the dataset dir
-
+    print("\nRead data from: ", train_file)
+    print("Load data...")
     train_patterns_list = []
     with open(dataset_path+train_file) as csvfile:
         readCSV = csv.reader(csvfile, delimiter=' ')
@@ -46,8 +47,8 @@ for temperature in os.listdir("../dataset"):
 
     samples = np.asarray(train_patterns_list)
 
-    def run(num_epochs=50, show_plot=False):
-        num_hidden_units = 100
+    def run(num_epochs=60, show_plot=False):
+        num_hidden_units = 1
         batch_size = 100
         mc_steps = 10
         beta_std = 0.6
@@ -58,56 +59,71 @@ for temperature in os.listdir("../dataset"):
             # set up the model and initialize the parameters
             vis_layer = layers.BernoulliLayer(data.ncols)
             hid_layer = layers.BernoulliLayer(num_hidden_units, center=False)
-
             rbm = BoltzmannMachine([vis_layer, hid_layer])
             rbm.connections[0].weights.add_penalty({'matrix': pen.l2_penalty(0.001)})
             rbm.initialize(data, method='pca')
-
-#            print('training with persistent contrastive divergence')
             cd = fit.SGD(rbm, data)
-
             learning_rate = schedules.PowerLawDecay(initial=0.01, coefficient=0.1)
             opt = optimizers.ADAM(stepsize=learning_rate)
-
+            print("Train the model...")
             cd.train(opt, num_epochs, mcsteps=mc_steps, method=fit.pcd, verbose=False)
+            # write on file KL divergences
             reverse_KL_div = [ cd.monitor.memory[i]['ReverseKLDivergence'] for i in range(0,len(cd.monitor.memory)) ]
             KL_div = [ cd.monitor.memory[i]['KLDivergence'] for i in range(0,len(cd.monitor.memory)) ]
             for i in range(0,len(cd.monitor.memory)):
             	out_file1.write(str(KL_div[i])+" "+str(reverse_KL_div[i])+"\n")
-    #        Gprotein_util.show_metrics(rbm, cd.monitor)
             out_file1.close()
+            # save weights on file
             filename = "results/weights/weights-"+temperature[:-4]+".jpg"
-            Gprotein_util.show_weights(rbm, show_plot=False, n_weights=10, Filename=filename)
+            Gprotein_util.show_weights(rbm, show_plot=False, n_weights=1, Filename=filename, random=False)
         return rbm
 
     if __name__ == "__main__":
-        print("Computing file: ", temperature)
         rbm = run(show_plot = False)
-        print("Train done!")
+        print("Train done!\n")
 
         n_fantasy = 10000
         fantasy_steps = 10
-        print("Creating fantasy particles...")
+        print("Create fantasy particles...")
         fantasy_particles = Gprotein_util.compute_fantasy_particles(rbm, n_fantasy, fantasy_steps,run_mean_field=False)
 
-        # Compute mean energy and variance
+        # Compute mean energy and variance of the energy
         cmap_energy = fantasy_particles.sum(1)/np.size(fantasy_particles, 1)
         av_E = cmap_energy.sum(0)/np.size(cmap_energy, 0)
         av_E2 = (np.square(cmap_energy)).sum(0)/np.size(cmap_energy, 0)
         var = av_E2 - av_E**2
-        print("Mean E:\t",av_E,"\t",var)
+
+        print("<E> = ",av_E,"\tvariance_E = ",var)
         out_file = open("energy-vs-var-fantasy-cmap.dat", "a+")
         out_file.write(temperature[4:-5]+" "+ str(av_E) + " " + str(var)+"\n")
 
-        # Save mean fantasy cmap
+        # Save mean fantasy cmap and variance of single contacts
+        # Mean
+        print("Compute the mean of single contacts...")
         mean_cmap = fantasy_particles.sum(0)/np.size(fantasy_particles, 0)
-
+        #reshape mean_cmap as a contact map for better visualizing it
         triu_i = np.triu_indices(56,1)
         Z1 = np.zeros((56,56))
         Z1[triu_i] = mean_cmap
-
         plt.matshow(Z1)
-
         colorbar = plt.colorbar()
         colorbar.set_label("% precence of contact on average")
         plt.savefig("results/mean_fantasy_cmap/mean_cmap-"+ temperature[:-4]+".png")
+        # Variance
+        print("Compute the variance of single contacts...")
+        ncontact = np.size(fantasy_particles,1)
+        nfpart = np.size(fantasy_particles,0)
+        var = np.zeros(ncontact)
+        for i in range(ncontact):
+            sum = 0
+            print("#Contact: ", i, '\r', end='')
+            for j in range(nfpart):
+                sum = sum + ( fantasy_particles[j,i] - mean_cmap[i])**2
+            var[i] = sum/(nfpart-1)
+        # reshape var as a contact map for better visualizing it
+        Z2 = np.zeros((56,56))
+        Z2[triu_i] = var
+        plt.matshow(Z2)
+        colorbar = plt.colorbar()
+        colorbar.set_label("Variance")
+        plt.savefig("results/variance_fantasy_cmap/variance_cmap-"+ temperature[:-4]+".png")
