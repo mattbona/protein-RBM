@@ -29,7 +29,7 @@ def plot_image_grid(image_array, shape, vmin=0, vmax=1, filename=None, show=True
     img_array = be.to_numpy_array(image_array)
     nrows, ncols = img_array.shape[:-1]
 
-    f = plt.figure(figsize=(5*ncols, 5*nrows))
+    f = plt.figure(figsize=(2*ncols, 2*nrows))
     grid = gs.GridSpec(nrows, ncols)
     axes = [[plt.subplot(grid[i,j]) for j in range(ncols)] for i in range(nrows)]
     for i in range(nrows):
